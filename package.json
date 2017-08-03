@@ -1,0 +1,58 @@
+{
+  "_args": [
+    [
+      {
+        "raw": "/private/var/folders/w9/9j_nzh255d1cd0l17hm_y_c40000gn/T/d-117517-27803-7b47jw.fgr6mholxr/package.tgz",
+        "scope": null,
+        "escapedName": null,
+        "name": null,
+        "rawSpec": "/private/var/folders/w9/9j_nzh255d1cd0l17hm_y_c40000gn/T/d-117517-27803-7b47jw.fgr6mholxr/package.tgz",
+        "spec": "/private/var/folders/w9/9j_nzh255d1cd0l17hm_y_c40000gn/T/d-117517-27803-7b47jw.fgr6mholxr/package.tgz",
+        "type": "local"
+      },
+      "/private/var/folders/w9/9j_nzh255d1cd0l17hm_y_c40000gn/T/apm-install-dir-117517-27803-1uvo27b.vrbg0q9f6r"
+    ]
+  ],
+  "_from": "../d-117517-27803-7b47jw.fgr6mholxr/package.tgz",
+  "_id": "language-dashtcl@0.5.0",
+  "_inCache": true,
+  "_installable": true,
+  "_location": "/language-dashtcl",
+  "_phantomChildren": {},
+  "_requested": {
+    "raw": "/private/var/folders/w9/9j_nzh255d1cd0l17hm_y_c40000gn/T/d-117517-27803-7b47jw.fgr6mholxr/package.tgz",
+    "scope": null,
+    "escapedName": null,
+    "name": null,
+    "rawSpec": "/private/var/folders/w9/9j_nzh255d1cd0l17hm_y_c40000gn/T/d-117517-27803-7b47jw.fgr6mholxr/package.tgz",
+    "spec": "/private/var/folders/w9/9j_nzh255d1cd0l17hm_y_c40000gn/T/d-117517-27803-7b47jw.fgr6mholxr/package.tgz",
+    "type": "local"
+  },
+  "_requiredBy": ["#USER"],
+  "_resolved": "file:../d-117517-27803-7b47jw.fgr6mholxr/package.tgz",
+  "_shasum": "2626ff5d6329b7062d2ce5e41461cbae1663c5ea",
+  "_shrinkwrap": null,
+  "_spec": "/private/var/folders/w9/9j_nzh255d1cd0l17hm_y_c40000gn/T/d-117517-27803-7b47jw.fgr6mholxr/package.tgz",
+  "_where": "/private/var/folders/w9/9j_nzh255d1cd0l17hm_y_c40000gn/T/apm-install-dir-117517-27803-1uvo27b.vrbg0q9f6r",
+  "bugs": {
+    "url": "https://github.com/Dash-OS/atom-language-dashtcl/issues"
+  },
+  "dependencies": {},
+  "description": "Tcl 8.6.6-enhanced grammar for Tcl",
+  "devDependencies": {},
+  "engines": {
+    "atom": ">=1.0.0 <2.0.0"
+  },
+  "homepage": "https://github.com/Dash-OS/atom-language-dashtcl#readme",
+  "keywords": [],
+  "license": "MIT",
+  "name": "language-dashtcl",
+  "optionalDependencies": {},
+  "readme": "# language-dashtcl package for atom.io\n\nsyntax and editor tweaks for Tcl/Tk\n\nNote: There has been an atom package `language-tcl` around for some time with unresolved (and unnerving) issues. This  package (`language-tcltk`) aims to provide a better alternative.\n\n## random notes\nconversion process from textmate\n\n```\napm init --package ~/.atom/packages/language-tcltk --convert https://github.com/textmate/tcl.tmbundle\n```\n\n... then extended/amended.\n\n## todos\n\n* wish/tk recognition\n* tk keywords\n",
+  "readmeFilename": "README.md",
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/Dash-OS/atom-language-dashtcl.git"
+  },
+  "version": "0.5.0"
+}
