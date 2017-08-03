@@ -28,9 +28,7 @@
     "spec": "/private/var/folders/w9/9j_nzh255d1cd0l17hm_y_c40000gn/T/d-117517-27803-7b47jw.fgr6mholxr/package.tgz",
     "type": "local"
   },
-  "_requiredBy": [
-    "#USER"
-  ],
+  "_requiredBy": ["#USER"],
   "_resolved": "file:../d-117517-27803-7b47jw.fgr6mholxr/package.tgz",
   "_shasum": "2626ff5d6329b7062d2ce5e41461cbae1663c5ea",
   "_shrinkwrap": null,
@@ -56,5 +54,5 @@
     "type": "git",
     "url": "git+https://github.com/Dash-OS/atom-language-dashtcl.git"
   },
-  "version": "1.0.0"
+  "version": "0.5.0"
 }
