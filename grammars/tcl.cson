@@ -202,7 +202,7 @@ repository:
         name: "keyword.control.special.tcl"
       }
       {
-        match: "(?<=^|\\[|{|;)\\s*(::)?\\b(try|next|package|while|format|lindex|lsort|glob|tuapi|subst|upvar|uplevel|fileutil|continue|cluster|break|default|yield|load|split|switch|yieldto|catch|source|cd|file|wget|join|throw|lrange|lset|lmap|lassign|llength|lwhere|list|return|puts|clock|include|includes|state|variable|after|task|return|json|interp)\\b(::)?"
+        match: "(?<=^|\\[|{|;)\\s*(::)?\\b(try|apply|fconfigure|chan|open|close|next|package|while|format|lindex|lsort|glob|tuapi|subst|upvar|uplevel|fileutil|continue|cluster|break|default|yield|load|split|switch|yieldto|catch|source|cd|file|wget|join|throw|lrange|lset|lmap|lassign|llength|lwhere|list|return|puts|clock|include|includes|state|variable|after|task|return|json|interp)\\b(::)?"
         name: "keyword.control.tcl"
         captures:
           1: name: "entity.function.name"
@@ -231,7 +231,7 @@ repository:
       { include: "#expression-functions" }
       {
         comment: "order-of-operations"
-        begin: "\\s*+(?<=\\s)(\\()"
+        begin: "\\s*+(?<=\\s|{)(\\()"
         end: "\\s*(\\))"
         beginCaptures:
           1: name: "entity.function.name.expression.brace.ooo.open.tcl"
@@ -401,12 +401,13 @@ repository:
   "tcl-puts":
     patterns: [
       {
-        # applyEndPatternLast: 1
-        begin: "(?<=^|\\[|{|;)\\s*\\b(puts)\\b"
+        begin: "(?<=^|\\[|{|;)\\s*\\b(puts)\\b(?:\\s+([^\\s|\\$]*)\\s+(?!$|^))?"
         end: "\\s*(?=$|}|\\]|;)"
         beginCaptures:
           1: name: "keyword.control.puts.tcl"
+          2: name: "support.type.punctuation.italic"
         patterns: [
+          { include: "#variable" }
           { include: "#square-brackets"}
           { include: "#curly-string-brackets" }
           { include: "#quoted-string" }
@@ -1186,9 +1187,9 @@ repository:
   "tcl-namespace":
     patterns: [
       {
-        applyEndPatternLast: 1
+        # applyEndPatternLast: 1
         begin: "(?<=^|\\[|{|;)\\s*(::)?\\b(namespace)\\s+"
-        end: "\\s*"
+        end: "\\s*(?=$|\n|}|\\])"
         beginCaptures:
           1: name: "support.type"
           2: name: "keyword.control.namespace.tcl"
@@ -1197,26 +1198,23 @@ repository:
           { include: "#tcl-namespace-eval" }
           { include: "#tcl-namespace-entity-commands" }
           { include: "#tcl-namespace-subcommands" }
-          # { include: "#proc-call-args" }
+          { include: "#proc-call-args" }
         ]
       }
     ]
   "tcl-namespace-eval":
-    applyEndPatternLast: 1
+    # applyEndPatternLast: 1
     begin: "\\s*(eval)\\s+([^\\s]*)"
-    end: "\\s*"
+    end: "(?=$|\n|}|\\])"
     beginCaptures:
-      1:
-        name: "keyword.control.name.namespace.eval.tcl"
+      1: name: "keyword.control.name.namespace.eval.tcl"
       2:
-        # name: "meta.class"
         patterns: [
           { include: "#line-escape" }
           { include: "#namespace-name" }
         ]
     patterns: [
       { include: "#line-escape" }
-      # { include: "#namespace-name" }
       { include: "#brackets" }
     ]
   "tcl-namespace-entity-commands":
@@ -1233,14 +1231,13 @@ repository:
         ]
     patterns: [
       { include: "#line-escape" }
-      # { include: "#namespace-name" }
       { include: "#brackets" }
     ]
   "tcl-namespace-subcommands":
-    applyEndPatternLast: 1
-    match: "\\s*(exists|delete|ensemble|children|code|current|export|forget|import|inscope|origin|parent|path|qualifiers|tail|upvar|unknown|which)\\b"
+    # applyEndPatternLast: 1
+    match: "\\b(exists|delete|ensemble|children|code|current|export|forget|import|inscope|origin|parent|path|qualifiers|tail|upvar|unknown|which)\\b"
     captures:
-      1: name: "keyword.control.namespace.tcl"
+      1: name: "entity.function.name.namespace.subcommand.tcl"
   "namespace-name":
     begin: "(?<=^|\\[|{|;)"
     end: "(?=}|\\s|\\]|;)"
@@ -1402,7 +1399,7 @@ repository:
   "tcl-string-map":
     patterns: [
       {
-        applyEndPatternLast: 1
+        # applyEndPatternLast: 1
         begin: "\\s*\\b(map)\\b"
         end: "\\s*(?=$|\n|\\]|}|{|\\[)"
         captures:
@@ -1600,13 +1597,26 @@ repository:
       { include: "#bare-string" }
     ]
   "bare-string":
-    match: "(\\s*[^\\s|}|\\]|;|-|{|\\[|\"])"
-    captures:
-      1:
+    patterns: [
+      {
+        match: "(\\s*[^\\s|}|\\]|;|-|{|\\[|\"|:])"
+        captures:
+          1:
+            name: "string"
+            patterns: [
+              { include: "#variable" }
+            ]
+      }
+      {
+        match: "(?<!:)(:)(?!:)|(?<=::)(:)(?!:)"
         name: "string"
-        patterns: [
-          { include: "#variable" }
-        ]
+      }
+      {
+        match: "\\s*(::)(?!:(?<!:))"
+        name: "support.type"
+      }
+    ]
+
   "comment-blocks":
     patterns: [
       {
@@ -1689,10 +1699,17 @@ repository:
   "annotate-highlight":
     patterns: [
       {
-        comment: "adding @ in a multi-line will make the line emphasized"
+        comment: "adding | in a multi-line will make the line highlighted (string)"
         match: "(?<=\\|)\\s*([^\\||}|{|$]*)"
         captures:
-          1: name: "string.quote.annotate.comment.tcl"
+          1:
+            name: "string.quote.annotate.comment.tcl"
+            patterns: [
+             {
+               match: "\\b(http://([^\\s]*))"
+               name: "entity.function.name.markup.underline"
+             }
+           ]
       }
     ]
   "annotate-header":
@@ -1841,7 +1858,7 @@ repository:
             name: "variable"
           }
           {
-            match: "(?<=\\*)(?!\\s|$|^)([^\\s|\\*|::|}|\\]|\\)|\\(|\"|;|^|$]*)"
+            match: "(?<=\\*)(?!\\s|$|^)([^\\s|\\*|::|}|\\]|\\)|\\(|\"|,|;|^|$]*)"
             name: "variable"
           }
 
@@ -1862,7 +1879,7 @@ repository:
     patterns: [
       { include: "#spread-variable" }
       {
-        match: "\\s*+(?<!(?<!\\\\)\\\\)(\\$)(?:({)([^}|\\s|\\]|\"|\\)|\\(|\\$]*)(\\(.*\\))?(})|(?=[A-Za-z0-9_:])([^\\s|}|\\]|\"|\\)|\\(|\\$|,]*))(\\(.*\\))?"
+        match: "\\s*+(?<!(?<!\\\\)\\\\)(\\$)(?:({)([^}|\\s|\\]|\"|\\)|\\(|\\$]*)(\\(.*\\))?(})|(?=[A-Za-z0-9_:])([^\\s|}|\\]|\"|\\)|;|\\(|\\$|,]*))(\\(.*\\))?"
         captures:
           1: name: "support.type.variable.indicator.tcl"
           2: name: "entity.function.name.variable.brace.open.tcl"
