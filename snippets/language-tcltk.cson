@@ -58,3 +58,12 @@
       }
 
     '''
+  "try...":
+    prefix: "try"
+    leftLabel: "TRY!"
+    description: "try description!"
+    body: '''
+      try {
+        ${1:#code block}
+      }
+    '''

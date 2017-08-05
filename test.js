@@ -1,0 +1,1 @@
+const b = { one: 'two' }

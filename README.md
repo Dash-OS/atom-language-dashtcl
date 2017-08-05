@@ -10,3 +10,36 @@ and commands.  We are currently adding and building to it as we encounter
 issues with the highlighting while moving our projects to atom editor.
 
 ![image](http://i.imgur.com/3OhhAnb.png)
+
+## Comment Syntax
+
+This grammar supports annotating within "multi-line-comments".  Tcl does not officially have a multi-line comment, however using `if 0 {}` is generally a way to accomplish this.  
+
+We personally use `% {}` so it is currently expecting either of those to be multi-line.
+It will highlight links.  If you also want to be able to click to open them, then you can
+install the excellent [Hyperclick](https://atom.io/packages/hyperclick) package along with
+the [hyperlink-hyperclick](https://atom.io/packages/hyperlink-hyperclick) provider.
+
+```tcl
+proc % args {}
+
+% {
+  @ Annotated Title
+    > Category / Header
+      -arg/opt {string|entier}
+        | Highlighted Text / Description
+        | http://www.link.com
+}
+```
+
+***and/or***
+
+```tcl
+if 0 {
+  @ Annotated Title
+    > Category / Header
+      -arg/opt {string|entier}
+        | Highlighted Text / Description
+        | http://www.link.com
+}
+```
