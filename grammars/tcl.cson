@@ -500,7 +500,7 @@ repository:
       {
         # applyEndPatternLast: 1
         begin: "(?<=^|\\[|{|;)\\s*\\b(puts)\\b(?:\\s+([^\\s\\$\"\\[{\\]};]*)\\s+(?!$|^))?"
-        end: "\\s*(?=$|\n|}|\\]|;)"
+        end: "\\s*(?=$|\n|}|\\]|;|^)"
         beginCaptures:
           1: name: "keyword.control.puts.tcl"
           2: name: "support.type.punctuation.italic"
