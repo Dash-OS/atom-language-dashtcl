@@ -1,8 +1,8 @@
 ".dyn.caret.begin.document":
   "#!/usr/bin/env tclsh":
-    prefix: "tcl"
+    prefix: "dashsh"
     body: '''
-      #!/usr/bin/env tclsh
+      #!/usr/bin/env dashsh
 
     '''
 ".source.tcl":
@@ -22,10 +22,15 @@
       }
 
     '''
+  "http::geturl":
+    prefix: "::http::get"
+    body: '''
+      ::http::geturl ${1:url}
+    '''
   "if...":
     prefix: "if"
     body: '''
-      if {${1:condition}} {
+      if {${1:conditions}} {
       	${2}
       }
 
@@ -58,9 +63,9 @@
       }
 
     '''
-  "try...":
-    prefix: "try"
-    leftLabel: "TRY!"
+  "state...":
+    prefix: "state"
+    leftLabel: "Dash OS"
     description: "try description!"
     body: '''
       try {

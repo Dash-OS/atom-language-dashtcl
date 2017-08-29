@@ -202,6 +202,7 @@ repository:
       { include: "#tcl-puts" }
       { include: "#tcl-upvar" }
       { include: "#tcl-global" }
+      { include: "#tcl-vwait" }
       { include: "#tcl-entity-commands" }
       {
         match: "\\s*+\\b(destroy)\\b"
@@ -224,12 +225,20 @@ repository:
   "tcl-core-commands":
     patterns: [
       {
-        match: "(?<=^|\\[|{|;)\\s*(::)?\\b(try|apply|error|gets|for|lrepeat|lsearch|fconfigure|chan|open|close|next|package|while|format|lindex|lsort|glob|tuapi|subst|upvar|uplevel|fileutil|continue|cluster|break|default|yield|load|split|switch|yieldto|catch|source|cd|file|wget|join|throw|lrange|lset|lmap|lassign|llength|lwhere|list|return|puts|clock|include|includes|state|variable|after|task|return|json|interp)\\b(::)?"
+        comment: "imports & requires"
+        match: "(?<=^|\\[|{|;)\\s*(::)?\\b(package|include|includes)\\b(::)?"
+        captures:
+          1: name: "support.type.ns.separator"
+          2: name: "keyword.control.import.package.tcl"
+          3: name: "support.type.ns.separator"
+      }
+      {
+        match: "(?<=^|\\[|{|;)\\s*(::)?\\b(try|apply|error|gets|for|lrepeat|lsearch|fconfigure|chan|open|close|next|while|format|lindex|lsort|glob|tuapi|subst|upvar|uplevel|fileutil|continue|cluster|break|default|yield|load|split|switch|yieldto|catch|source|cd|file|wget|join|throw|lrange|lset|lmap|lassign|llength|lwhere|list|return|puts|clock|state|variable|after|task|return|json|interp)\\b(::)?"
         name: "keyword.control.tcl"
         captures:
-          1: name: "support.type"
+          1: name: "support.type.ns.separator"
           2: name: "keyword.control.tcl"
-          3: name: "entity.function.name"
+          3: name: "support.type.ns.separator"
       }
     ]
   "expressions":
@@ -309,11 +318,31 @@ repository:
         ]
       }
     ]
+  "tcl-vwait":
+    patterns: [
+      { include: "#line-escape" }
+      {
+        comment: "vwait varName"
+        begin: "(?<=^|\\[|{|;)\\s*(::)?\\b(vwait)\\b\\s*+(?!$|\n|;|^|\\]|})"
+        end: "(?=$|\n|;|\\]|}|\\s)\\s*([^$\n^\\];}\\[\\\\]*)?(\\\\(?!\n))?"
+        beginCaptures:
+          1: name: "support.type.ns.tcl"
+          2: name: "keyword.control.vwait.tcl"
+        endCaptures:
+          1: name: "invalid.illegal.numargs.tcl"
+          2: name: "invalid.illegal.escape.tcl"
+        patterns: [
+          { include: "#line-escape" }
+          { include: "#variable" }
+          { include: "#variable-bare-italic" }
+        ]
+      }
+    ]
   "tcl-proc":
     patterns: [
       {
         # applyEndPatternLast: 1
-        begin: "(?<=^|\\[|{|;)\\s*(::)?\\b(proc)\\s+([^\\s]*)\\s+"
+        begin: "(?<=^|\\[|{|;)\\s*(::)?\\b(proc)\\b\\s+([^\\s]*)\\s+"
         end: "(?<=})"
         endCaptures:
           1: name: "invalid.illegal"
@@ -593,14 +622,14 @@ repository:
     patterns: [
       {
         match: "\\s+\\b(set|get|pull|register|apply_middleware|configure|push|subscription|query)\\b"
-        name: "entity.function.name.tcl"
+        name: "entity.function.state.name.tcl"
       }
     ]
   "tcl-state-configure":
     patterns: [
       {
-        begin: "(?<=configure|apply_middleware)\\s+([^\\s|$|}|\\]|\\[|{|;|\\\\]*)"
-        end: "(?:(?!$|\n|;|\\])\\s*)?(?=$|\n|;|\\])"
+        begin: "(?<=configure|apply_middleware)\\s+(?!$|\n|;|\\]|}|^)([^\\s$}\\]\\[{;\\\\]*)"
+        end: "(?=$|\n|\\]|}|;)"
         beginCaptures:
           1: name: "meta.class"
           2:
@@ -1071,7 +1100,7 @@ repository:
         name: "support.type"
       }
       {
-        match: "(?<=::|\\s|^)([^\\s|}|\\]|;|$|\n|{|\\[]*)"
+        match: "(?<=::|\\s|^)([^\\s}\\];$\n{\\[:]*)"
         name: "meta.class"
       }
     ]
@@ -1157,18 +1186,13 @@ repository:
   "tcl-oo-create":
     patterns: [
       {
-        applyEndPatternLast: 1
-        begin: "(?<=class|module|metaclass)\\b\\s+(create)\\s+([^\\s]*)\\s+"
-        end: "\\s*"
+        begin: "(?<=class|module|metaclass)\\b\\s+\\b(create)\\b\\s+([^\\s\n$;\\]}]*)(?:(?!\n|;|\\]|})\\s*)?"
+        end: "(?=$|\n|;|\\])|(?<=})"
         captures:
           1: name: "entity.function.name.oo.create.tcl"
           2:
-            name: "meta.class"
             patterns: [
-              {
-                match: "(::)"
-                name: "support.type.namespace.sep.tcl"
-              }
+              { include: "#tcl-class-name" }
             ]
         patterns: [
           { include: "#tcl-oo-eval-brackets" }
@@ -2190,7 +2214,7 @@ repository:
         name: "string"
       }
       {
-        match: "(?!;|\\]|}|\\*|\"|;)([^\\*}\\\\;\\]{\\[\":\\$]*)"
+        match: "(?!;|\\]|}|\\*|\"|;)([^\\*}\\\\;\\]{\\[\":\\$\n]+)"
         captures:
           1:
             name: "string"
@@ -2198,14 +2222,10 @@ repository:
               { include: "#variable" }
             ]
         patterns: [
-          {
-            include: "#variable"
-          }
+          { include: "#variable" }
         ]
       }
-      {
-        include: "#variable"
-      }
+      { include: "#variable" }
     ]
   "html-curly-brackets":
     begin: "\\s*({)"

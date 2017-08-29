@@ -2,6 +2,22 @@
   editor:
     increaseIndentPattern: "\\{[^\"'}]*$"
     commentStart: "# "
-".source.antlr":
-  editor:
-    foldEndPattern: "^\\s*\\}"
+  autocomplete:
+    symbols:
+      class:
+        selector: 'meta.class'
+        typePriority: 1
+      function:
+        selector: '.function.name'
+        typePriority: 3
+      variable:
+        selector: '.variable'
+        typePriority: 2
+      '':
+        selector: '.source.tcl'
+        typePriority: 1
+      builtin:
+        suggestions: [
+          '::json::file2dict'
+          '::http::geturl'
+        ]

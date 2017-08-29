@@ -43,3 +43,8 @@ if 0 {
         | http://www.link.com
 }
 ```
+
+## Extra Command Handling
+
+In addition to the core Tcl commands, the grammar is also being built to
+cover many of our ["Tcl Modules"](https://github.com/Dash-OS/tcl-modules) utilities.  
