@@ -111,13 +111,13 @@ repository:
   "empty-brackets":
     patterns: [
       {
-        comment: "enclosed brackets"
-        match: "\\s*{([{}]*)}"
+        match: "\\s*({})(?=\\s|;|\\]|})"
         captures:
           1: name: "punctuation.definition.string.brackets.tcl"
       }
       {
-        match: "\\s*({})(?=\\s|;|\\])"
+        comment: "enclosed brackets"
+        match: "\\s*{([{}]*)}"
         captures:
           1: name: "punctuation.definition.string.brackets.tcl"
       }
@@ -2262,11 +2262,12 @@ repository:
     patterns: [
       {
         begin: "(?<=\\[|{|^)\\s*(::)?\\b(dict)\\b"
-        end: "(?=$|\n|}|\\]|;|^)"
+        end: "(?=$|\n|}|\\]|;)"
         beginCaptures:
           1: name: "support.type"
           2: name: "keyword.control.dict.tcl"
         patterns: [
+          { include: "#line-escape" }
           { include: "#variable" }
           { include: "#tcl-dict-keywords" }
           { include: "#tcl-dict-subcommands" }
@@ -2295,13 +2296,14 @@ repository:
     patterns: [
       {
         begin: "\\s+\\b(set|pull|unset|lappend|incr)\\b"
-        end: "(?:(?!$|\n|\\]|}|;|\\[|{)\\s*)?(?=$|^|\\]|})"
+        end: "(?:(?!$|\n|\\]|}|;|\\[|{)\\s*)?(?=$|\\]|}|;|\n|^)"
         beginCaptures:
           1: name: "entity.function.name.dict.setters.subcommand.tcl"
         patterns: [
+          { include: "#line-escape" }
           {
             begin: "(?<=pull)\\b\\s+(?!\n)"
-            end: "\\s*(?=\n|$|\\]|}|;)"
+            end: "(?=(?<!\\\\)\n|$|\\]|}|;)"
             patterns: [
               { include: "#line-escape" }
               { include: "#variable" }
@@ -2309,7 +2311,7 @@ repository:
             ]
           }
           {
-            match: "(?<=set|pull|unset|lappend|incr)\\b\\s*([^\\s|\\[|{|;|$]*)"
+            match: "(?<=set|pull|unset|lappend|incr)\\b\\s*([^\\s\\[{;\n]*)"
             name: "meta.class"
             captures:
               1:
@@ -2320,7 +2322,6 @@ repository:
                 ]
           }
           { include: "#proc-call-args" }
-          { include: "#line-escape" }
           { include: "#variable" }
         ]
       }
@@ -2340,14 +2341,14 @@ repository:
   "proc-args-singular":
     patterns: [
       {
-        match: "(?!{|\\[|\\s|}|\\]|$)([^\\s]*)(?=\\s)"
+        match: "(?!{|\\[|\\s|}|\\]|$)([^\\s}\\];]*)(?=\\s|}|\\])"
         captures:
           1: name: "punctuation.definition.variable.tcl"
       }
     ]
   "proc-args-braced": {
     begin: "(?={)({)\\s*"
-    end: "\\s*(})"
+    end: "(})"
     beginCaptures:
       1: name: "meta.brace.curly.proc.args.open.tcl"
     endCaptures:

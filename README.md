@@ -49,6 +49,10 @@ if 0 {
 In addition to the core Tcl commands, the grammar is also being built to
 cover many of our ["Tcl Modules"](https://github.com/Dash-OS/tcl-modules) utilities.  
 
+#### Tcl State Manager
+
+![image](http://i.imgur.com/meqfNqw.png)
+
 ## Regular Expression Handling
 
 Handles regular expression highlighting when using curly-brackets to enclose
