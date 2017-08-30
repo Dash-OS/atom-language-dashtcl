@@ -48,3 +48,12 @@ if 0 {
 
 In addition to the core Tcl commands, the grammar is also being built to
 cover many of our ["Tcl Modules"](https://github.com/Dash-OS/tcl-modules) utilities.  
+
+## Regular Expression Handling
+
+Handles regular expression highlighting when using curly-brackets to enclose
+the expressions.  This will only work when used directly with the regexp /
+regsub commands as it is otherwise impossible to know that the values are
+regular expression.
+
+![image](http://i.imgur.com/lFF8zNX.png)
