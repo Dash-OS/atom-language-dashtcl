@@ -9,7 +9,10 @@ This is currently a work in progress and is missing some core handling
 and commands.  We are currently adding and building to it as we encounter
 issues with the highlighting while moving our projects to atom editor.
 
-![image](http://i.imgur.com/3OhhAnb.png)
+> Pull requests are more than welcome.  At the moment there are various scopes that
+> need refinements as we perfect the expression handling, etc.  
+
+![image](https://i.imgur.com/lfPbjjP.png)
 
 ## Comment Syntax
 
@@ -106,7 +109,7 @@ proc % args {}
     @prop myProp {string|entier}
       A Standard prop description here.
     @custom property > Woo!
-    
+
   @example
     { puts "What a cool example!" }
 }
