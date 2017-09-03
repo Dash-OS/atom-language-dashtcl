@@ -33,7 +33,6 @@ within your code using the "non-substituting-variable" patterns.
 
 ```tcl
 % { $::my::variable }
-$::my::variable
 ```
 
 ##### { curly bracket blocks }
@@ -42,13 +41,7 @@ When a line starts with an opening curly bracket, it will be given
 standard syntax highlighting.  This can be useful when providing
 examples of calling a proc, etc.  These can span multiple lines.
 
-```tcl
-% {
-  @ ::my::proc @
-  @example
-    { puts "hello, world" }
-}
-```
+![image](https://i.imgur.com/2kluRAu.png)
 
 ##### prop types
 
@@ -67,14 +60,7 @@ we can add < or > brackets after a types name and add the property within it.`
 If we want to use a regular expression syntax w/ regexp highlighting, we can do so by using the
 by bracing the type within forward slashes (example: /[0-4]\*/)
 
-```tcl
-% {
-  @ ::my::proc
-    @arg foo {*list<string|entier>|dict<key, value>*}
-    @arg bar {?list</[0-7]/>?}
-    @arg baz {?string|entier?}
-}
-```
+![image](https://i.imgur.com/dKppzxk.png)
 
 ##### @ properties
 
@@ -96,24 +82,7 @@ such as `{$type}` apply as normal.
 | Property | @key, @prop, @arg, @args, @returns, @example, @if |
 | Misc | @$any |
 
-```tcl
-proc % args {}
-
-% {
-  @type MyType {string|entier}
-    | Either a string or entier value is accepted.
-
-  @ Annotated Title {MyType}
-    > Category / Header
-    | Highlighted Overview [puts hi] http://www.link.com
-    @prop myProp {string|entier}
-      A Standard prop description here.
-    @custom property > Woo!
-
-  @example
-    { puts "What a cool example!" }
-}
-```
+![image](https://i.imgur.com/RahE8HD.png)
 
 ***and/or***
 

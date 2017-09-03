@@ -1,9 +1,16 @@
 namespace eval ::cluster {
   namespace ensemble create
   namespace export {[a-z]*}
+
+  namespace eval cluster  {}
+  namespace eval protocol {}
 }
-namespace eval ::cluster::cluster {}
-namespace eval ::cluster::protocol {}
+
+# Source our general utilities first since they
+# are needed for the evaluation below.
+source [file join \
+  [file dirname [file normalize [info script]]] utils general.tcl
+]
 
 % {
   @type ClusterCommunicationProtocol {mixed}
@@ -11,6 +18,9 @@ namespace eval ::cluster::protocol {}
     | protocols as provided within the [protocols] folder.
     | Generally these will be a single-character representation
     | as an example, "tcp" is "t" while "udp" is "u" and so-on.
+
+  @type MulticastAddress {IP}
+    | An IP Addresss within the range 224.0.0.0 to 239.255.255.255
 
   @type ClusterCommConfiguration {dict}
     | Our default configuration for the cluster.  This
@@ -37,12 +47,6 @@ namespace eval ::cluster::protocol {}
       do not leave the local system.
 }
 
-# Source our general utilities first since they
-# are needed for the evaluation below.
-source [file join \
-  [file dirname [file normalize [info script]]] utils general.tcl
-]
-
 % {
   @ ::cluster::cluster @ {class}
     | $::cluster::cluster instances are created for each cluster that
@@ -66,7 +70,7 @@ variable ::cluster::addresses [list]
 
 % {
   @ $::cluster::i @ {entier}
-   | A counter value used to generate unique session values
+    | A counter value used to generate unique session values
 }
 variable ::cluster::i 0
 
@@ -113,22 +117,48 @@ proc ::cluster::source {} {
 }
 
 % {
+  @type ClusterCommConfiguration {dict}
+    | Our default configuration for the cluster.  This
+    | dict also represents the configuration options
+    | that are available when calling [::cluster::join]
+    @prop address {MulticastAddress}
+      The address that should be used as the multicast address
+    @prop port /[0-65535]/
+      The UDP multicast port that should be used
+    @prop ttl {entier}
+      How many seconds should a service live if it is not seen?
+    @prop heartbeat {entier}
+      At what interval should we send heartbeats to the cluster?
+    @prop protocols {list<ClusterCommunicationProtocol>}
+      A list providing the communication protocols that should be
+      supported / advertised to our peers.  The list should be in
+      order of desired priority.  Our peers will attempt to honor
+      this priority when opening channels of communication with us.
+    @prop channels {list<entier>}
+      A list of communication channels that we should join.
+    @prop remote {boolean}
+      Should we listen outside of localhost? When set to false,
+      the ttl of our multicasts will be set to 0 so that they
+      do not leave the local system.
+
   @ ::cluster::join
     | The core cluster command that is used as a factory to build
     | a new cluster instance.  The $::cluster::cluster instance
     | is returned which can then be used to communicate with our
     | cluster.
-  @arg args {dict<-ConfigKey, ConfigValue>}
+  @arg args {dict<-key, value> from ClusterCommConfiguration}
     args are a key/value pairing with the configuration key being
     prefixed with a dash (-) and the value that should be used
-    as its pair value.
-  @example
-    { set CLUSTER [::cluster::join -protocols [list u t c] -channels [list 1 2 3] -remote true] }
+    as its pair value. (-ttl 600 -port 10)
+  @returns
 }
 proc ::cluster::join args {
   set config $::cluster::DEFAULT_CONFIG
   if { [dict exists $args -protocols] } {
     set protocols [dict get $args -protocols]
+    switch -- {
+      1 { #ok }
+    }
   } else { set protocols [dict get $config protocols] }
   dict for { k v } $args {
     set k [string trimleft $k -]
@@ -146,3 +176,19 @@ proc ::cluster::join args {
 }
 
 ::cluster::source
+
+% {
+  @type MyType {string|entier}
+    | Either a string or entier value is accepted.
+
+  @ Annotated Title {MyType}
+    > Category / Header
+    | Highlighted Overview [puts hi] http://www.link.com
+    @prop myProp {string|entier}
+      A Standard prop description here.
+
+  @custom property > Woo!
+
+  @example
+    { puts "What a cool example!" }
+}
