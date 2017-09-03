@@ -1,194 +1,204 @@
-namespace eval ::cluster {
-  namespace ensemble create
-  namespace export {[a-z]*}
+# Dash OS Shared Libraries
+#
+#   The shared libraries are the backbone of the platform.  They provide an
+#   authorized application with access to the internal scripts and infrastructure
+#   needed to successfully integrate with Dash OS.
+#
+#   Once sourced, the library will automatically load the necessary items for an
+#   application to get started.  After that, applications are free to import and
+#   include the various scripts and/or resources it requires.
 
-  namespace eval cluster  {}
-  namespace eval protocol {}
+proc % args {}
+
+puts "Starting Dash OS"
+
+package require fileutil
+namespace eval ::Command {}
+
+set ::starttime [clock microseconds]
+set ::benchmarks [list]
+
+proc bench { {str {}} } {
+  lappend ::benchmarks [list $str [expr {  [clock microseconds] - $::starttime }]]
 }
 
-# Source our general utilities first since they
-# are needed for the evaluation below.
-source [file join \
-  [file dirname [file normalize [info script]]] utils general.tcl
-]
-
-% {
-  @type ClusterCommunicationProtocol {mixed}
-    | A ClusterCommunicationProtocol is any of the supported
-    | protocols as provided within the [protocols] folder.
-    | Generally these will be a single-character representation
-    | as an example, "tcp" is "t" while "udp" is "u" and so-on.
-
-  @type MulticastAddress {IP}
-    | An IP Addresss within the range 224.0.0.0 to 239.255.255.255
-
-  @type ClusterCommConfiguration {dict}
-    | Our default configuration for the cluster.  This
-    | dict also represents the configuration options
-    | that are available when calling [::cluster::join]
-    @prop address {MulticastAddress}
-      The address that should be used as the multicast address
-    @prop port /[0-65535]/
-      The UDP multicast port that should be used
-    @prop ttl {entier}
-      How many seconds should a service live if it is not seen?
-    @prop heartbeat {entier}
-      At what interval should we send heartbeats to the cluster?
-    @prop protocols {list<ClusterCommunicationProtocol>}
-      A list providing the communication protocols that should be
-      supported / advertised to our peers.  The list should be in
-      order of desired priority.  Our peers will attempt to honor
-      this priority when opening channels of communication with us.
-    @prop channels {list<entier>}
-      A list of communication channels that we should join.
-    @prop remote {boolean}
-      Should we listen outside of localhost? When set to false,
-      the ttl of our multicasts will be set to 0 so that they
-      do not leave the local system.
-}
-
-% {
-  @ ::cluster::cluster @ {class}
-    | $::cluster::cluster instances are created for each cluster that
-    | is joined.
-}
-::oo::class create ::cluster::cluster {}
-
-% {
-  @ ::cluster::services @ {class}
-    | Each discovered service (member of a cluster) will be
-    | an instance of our $::cluster::services class.
-}
-::oo::class create ::cluster::service {}
-
-% {
-  @ $::cluster::addresses {?list<IP>?}
-   | Used to store our systems local IP Addresses.  Primed by
-   | calling [::cluster::local_addresses]
-}
-variable ::cluster::addresses [list]
-
-% {
-  @ $::cluster::i @ {entier}
-    | A counter value used to generate unique session values
-}
-variable ::cluster::i 0
-
-% {
-  @ $::cluster::DEFAULT_CONFIG @ {ClusterCommConfiguration}
-}
-variable ::cluster::DEFAULT_CONFIG [dict create \
-  address     230.230.230.230 \
-  port        23000 \
-  ttl         600 \
-  heartbeat   [::cluster::rand 110000 140000] \
-  protocols   [list t c] \
-  channels    [list] \
-  remote      false \
-  tags        [list]
-]
-
-% {
-  @ ::cluster::source
-    | Called when cluster is required.  It will source all the
-    | necessary scripts in our sub-directories.  Once completed,
-    | the proc is removed via [rename]
-}
-proc ::cluster::source {} {
-  set utils_directory [file join [file dirname [file normalize [info script]]] utils]
-  foreach file [glob -directory $utils_directory *.tcl] {
-    if {[string match *general.tcl $file]} { continue }
-    uplevel #0 [list source $file]
-  }
-  set bpacket_directory [file join [file dirname [file normalize [info script]]] bpacket]
-  foreach file [glob -directory $bpacket_directory *.tcl] {
-    uplevel #0 [list source $file]
-  }
-  set classes_directory [file join [file dirname [file normalize [info script]]] classes]
-  foreach file [glob -directory $classes_directory *.tcl] {
-    uplevel #0 [list source $file]
-  }
-  set protocol_directory [file join [file dirname [file normalize [info script]]] protocols]
-  foreach file [glob -directory $protocol_directory *.tcl] {
-   uplevel #0 [list source $file]
+if { ! [info exists ::compiling] } {
+  if { [namespace exists ::config] } { namespace delete ::config }
+  namespace eval ::config {
+    variable sec {}      ; # security.json
+    variable api {}      ; # datastream-api.json
   }
 
-  rename ::cluster::source {}
+  namespace eval ::config::dirs  {}
+
+  namespace eval ::config::files {}
+
+  namespace eval ::app {
+    variable slug    [expr { [info exists ::app::slug] ? $::app::slug : {} }]
+    variable package {}
+    variable lib     {}
+    variable parameters   [dict create]
+  }
+
+  namespace eval ::config::dirs {
+    variable tmp            [file join [::fileutil::tempdir] dashos]
+    variable dash           [file join / remote Store Common Dash]
+    variable apps           [file join $dash apps]
+    variable os             [file join $dash .os]
+    variable packages       [file join $os packages]
+    variable vfs            [file join $dash vfs os]
+    variable vfs_shared     [file join $dash vfs shared]
+    variable vfs_app        [file join $dash vfs app]
+    variable global_storage [file join $dash Storage]
+    variable app_storage    {}
+    variable app {} ; # populated from $::startup::dirs::app in tempeval
+  }
+
+  namespace eval ::config::files {
+    variable shared_index    [file join $::config::dirs::vfs_shared index.tcl]
+    variable shared_index_ui [file join $::config::dirs::vfs_shared index_ui.tcl]
+    variable index      [file join $::config::dirs::os scripts sa]
+    variable lib        [file join $::config::dirs::os lib dashos.so]
+    variable shared     [file join $::config::dirs::os lib dashos_shared.so]
+    variable installing [file join $::config::dirs::tmp .installing]
+    variable installed  [file join $::config::dirs::tmp .installcomplete]
+    variable log        [file join $::config::dirs::tmp log.txt]
+    variable sdk        [file join $::config::dirs::vfs sdk.tcl]
+    variable sdk_ui     [file join $::config::dirs::vfs sdk_ui.tcl]
+    variable ospid      [file join $::config::dirs::os var dashos.pid]
+    variable pidfile    [file join $::config::dirs::os var dashos.pid]
+    variable package_archive [file join $::config::dirs::dash dashos.tar.gz]
+    variable build [file join $::config::dirs::dash .build]
+  }
 }
 
-% {
-  @type ClusterCommConfiguration {dict}
-    | Our default configuration for the cluster.  This
-    | dict also represents the configuration options
-    | that are available when calling [::cluster::join]
-    @prop address {MulticastAddress}
-      The address that should be used as the multicast address
-    @prop port /[0-65535]/
-      The UDP multicast port that should be used
-    @prop ttl {entier}
-      How many seconds should a service live if it is not seen?
-    @prop heartbeat {entier}
-      At what interval should we send heartbeats to the cluster?
-    @prop protocols {list<ClusterCommunicationProtocol>}
-      A list providing the communication protocols that should be
-      supported / advertised to our peers.  The list should be in
-      order of desired priority.  Our peers will attempt to honor
-      this priority when opening channels of communication with us.
-    @prop channels {list<entier>}
-      A list of communication channels that we should join.
-    @prop remote {boolean}
-      Should we listen outside of localhost? When set to false,
-      the ttl of our multicasts will be set to 0 so that they
-      do not leave the local system.
-
-  @ ::cluster::join
-    | The core cluster command that is used as a factory to build
-    | a new cluster instance.  The $::cluster::cluster instance
-    | is returned which can then be used to communicate with our
-    | cluster.
-  @arg args {dict<-key, value> from ClusterCommConfiguration}
-    args are a key/value pairing with the configuration key being
-    prefixed with a dash (-) and the value that should be used
-    as its pair value. (-ttl 600 -port 10)
-  @returns
+proc ::config::h { a } {
+  if { $a eq "oshash" } {
+    return eebg42at4bf1gtn2aeba1kaa4af2gdw2
+  } elseif { $a eq "hash" } {
+    return aebg32at4bf1gtn2aeba1kaa4af1gdw1
+  }
 }
-proc ::cluster::join args {
-  set config $::cluster::DEFAULT_CONFIG
-  if { [dict exists $args -protocols] } {
-    set protocols [dict get $args -protocols]
-    switch -- {
-      1 { #ok }
+
+proc ::app::get_package { {type dict} } {
+  if { $::config::dirs::app ne {} } {
+    if { [file isfile [file join $::config::dirs::vfs_app $::app::slug package.json]] } {
+      # First we check if we have a package.json in the mounted vfs.  If not,
+      # we will check the main directory and add that for now.
+      set package [file join $::config::dirs::vfs_app $::app::slug package.json]
+    } elseif { [file isfile [file join $::config::dirs::app package.tcl]] } {
+      # Next we check on the package.tcl file that is included within the
+      # distribution.  We will not rely on this package for long as it can
+      # be tampered with.
+      set package [file join $::config::dirs::app package.tcl]
+    } elseif { [file isfile [file join $::config::dirs::app package.json]] } {
+      set package [file join $::config::dirs::app package.json]
     }
-  } else { set protocols [dict get $config protocols] }
-  dict for { k v } $args {
-    set k [string trimleft $k -]
-    if { ! [dict exists $config $k] && $k ni $protocols } {
-      throw error "Invalid Cluster Config Key: ${k}, should be one of [dict keys $config]"
+    if { [info exists package] } {
+      if { $type eq "dict" } {
+        set ::app::package [json file2dict $package]
+        return $::app::package
+      } else {
+        return [::fileutil::cat $package]
+      }
     }
-    if { [string equal $k protocols] } {
-      # cluster protocol is required, add if defined without it
-      if { "c" ni $v } { lappend v c }
-    }
-    dict set config $k $v
   }
-  set id [incr ::cluster::i]
-  return [::cluster::cluster create ::cluster::clusters::cluster_$id $id $config]
 }
 
-::cluster::source
+proc ::app::init {} {
+  # bench appinit_start
+  include shared dash-app
+  # This will automatically determine the current vendor
+  # and source the appropriate vendor files so they meet
+  # the ::vendor namespace.
+  include shared vendors
 
-% {
-  @type MyType {string|entier}
-    | Either a string or entier value is accepted.
+  ::app::start
+  # bench appinit_stop
+  rename ::app::init {}
+}
 
-  @ Annotated Title {MyType}
-    > Category / Header
-    | Highlighted Overview [puts hi] http://www.link.com
-    @prop myProp {string|entier}
-      A Standard prop description here.
+proc ::config::tempeval {} {
+  puts tempeval
 
-  @custom property > Woo!
+  if { [namespace exists ::startup] } {
+    if { [info exists ::startup::dirs::app] } {
+      set ::config::dirs::app $::startup::dirs::app
+    }
+    namespace delete ::startup
+  }
+  #
+  #
+  set ::config::sec [json file2dict \
+    [file join $::config::dirs::vfs_shared config security.json]
+  ]
 
-  @example
-    { puts "What a cool example!" }
+  # puts $::config::sec
+  # puts [file join $::config::dirs::vfs_shared config "datastream-api.json"]
+
+  set ::config::api [json file2dict \
+    [file normalize [file join $::config::dirs::vfs_shared config datastream-api.json]]
+  ]
+
+  ::app::get_package
+
+  if { [namespace exists ::utils] } { namespace delete ::utils }
+
+  includes shared utils general
+  includes shared utils system
+
+  include shared dash-os
+  include shared datastream
+
+  if { $::app::package ne {} } { ::app::init }
+
+  # bench tempeval_stop
+  rename ::config::tempeval {}
+}
+
+::tcl::tm::path add [file normalize [file join [file dirname [info script]] scripts]]
+::tcl::tm::path add [file normalize [file join [file dirname [info script]] tcl_modules tm]]
+::tcl::tm::path add [file normalize [file join [file dirname [info script]] tcl_modules task]]
+::tcl::tm::path add [file normalize [file join [file dirname [info script]] tcl_modules cluster_comm]]
+
+source [file join $::config::dirs::vfs_shared scripts utils include.tcl]
+
+package require http_tools
+package require list_tools
+package require time_tools
+package require ip_tools
+package require ensembled
+package require callback
+package require json_tools
+package require extend::string
+package require extend::dict
+package require task
+package require tasks::every
+package require coro
+package require cmdlist
+package require run
+package require redelay
+package require pubsub
+package require oo::module
+package require state
+package require state::middleware::subscriptions
+package require state::middleware::persist
+package require state::middleware::sync
+package require watcher
+package require ue
+
+state configure sync \
+  -command ::dashos::sync::start
+
+{ # one # }
+# if we want to use tclparser
+# load {} tclparser
+# load {} Signal
+# since package require does not work with it
+
+try {
+  ::config::tempeval
+} on error {result options} {
+  puts "Startup Error: $result"
+  catch { ::onError $result $options "During Dash App Startup" }
 }

@@ -2568,7 +2568,7 @@ repository:
       {
         contentName: "comment.line.number-sign.tcl"
         begin: "(?<=^|;|{)\\s*((#))"
-        end: "(?=$|\n|})"
+        end: "(?=$|\n)|((#))(?=\\s*(?:$|[}\n]))"
         captures:
           1: name: "comment.line.number-sign.tcl"
           2: name: "punctuation.definition.comment.tcl"
