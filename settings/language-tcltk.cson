@@ -1,6 +1,6 @@
 ".source.tcl":
   editor:
-    increaseIndentPattern: "\\{[^\"'}]*$"
+    increaseIndentPattern: "{[^\"}]*$"
     commentStart: "# "
   autocomplete:
     symbols:
